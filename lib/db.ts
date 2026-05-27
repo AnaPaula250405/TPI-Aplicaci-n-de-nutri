@@ -1,12 +1,8 @@
-/**
- * Conexión a la base de datos Neon (PostgreSQL)
- * Usada en producción para persistir las respuestas
- */
 import { neon } from '@neondatabase/serverless'
 
 export function getDb() {
   const url = process.env.DATABASE_URL || process.env.STORAGE_URL
-  if (!url) throw new Error('DATABASE_URL no está configurada')
+  if (!url) throw new Error('DATABASE_URL no configurada')
   return neon(url)
 }
 
@@ -26,7 +22,12 @@ export async function initDb() {
       sabor_predominante TEXT NOT NULL,
       dulzor TEXT NOT NULL,
       humedad TEXT NOT NULL,
-      color TEXT NOT NULL
+      color TEXT NOT NULL,
+      crujiente TEXT NOT NULL DEFAULT 'nada'
     )
   `
+  // Agregar columna si no existe (para bases de datos ya creadas)
+  try {
+    await sql`ALTER TABLE survey_responses ADD COLUMN IF NOT EXISTS crujiente TEXT NOT NULL DEFAULT 'nada'`
+  } catch {}
 }
