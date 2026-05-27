@@ -1,68 +1,100 @@
 'use client'
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 
 interface AgradoSliderProps {
   value: number
   onChange: (val: number) => void
 }
 
-const LABELS = [
-  { pos: 0,   label: 'No me gusta' },
-  { pos: 50,  label: 'Ni me gusta\nni me disgusta' },
-  { pos: 100, label: 'Me gusta' },
-]
+const getLabel = (value: number) => {
+  if (value < 20)  return { text: 'No me gusta', face: '😖' }
+  if (value < 40)  return { text: 'No me gusta mucho', face: '😕' }
+  if (value < 60)  return { text: 'Ni me gusta ni me disgusta', face: '😐' }
+  if (value < 80)  return { text: 'Me gusta', face: '😊' }
+  return { text: '¡Me gusta mucho!', face: '😍' }
+}
 
 export default function AgradoSlider({ value, onChange }: AgradoSliderProps) {
-  const sliderRef = useRef<HTMLInputElement>(null)
+  const trackRef = useRef<HTMLDivElement>(null)
+  const { text, face } = getLabel(value)
 
-  useEffect(() => {
-    if (sliderRef.current) {
-      sliderRef.current.style.setProperty('--val', `${value}%`)
-    }
-  }, [value])
-
-  const getColor = () => {
-    if (value < 33) return '#c45a14'
-    if (value < 66) return '#e07020'
-    return '#5a8a2c'
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!trackRef.current) return
+    const rect = trackRef.current.getBoundingClientRect()
+    const pct = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1)
+    onChange(Math.round(pct * 100))
   }
 
-  const getLabel = () => {
-    if (value < 20)  return 'No me gusta'
-    if (value < 40)  return 'No me gusta mucho'
-    if (value < 60)  return 'Ni me gusta ni me disgusta'
-    if (value < 80)  return 'Me gusta'
-    return 'Me gusta mucho'
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.buttons !== 1) return
+    handleClick(e)
   }
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!trackRef.current) return
+    const rect = trackRef.current.getBoundingClientRect()
+    const touch = e.touches[0]
+    const pct = Math.min(Math.max((touch.clientX - rect.left) / rect.width, 0), 1)
+    onChange(Math.round(pct * 100))
+  }
+
+  const pct = value / 100
 
   return (
-    <div className="py-2">
-      {/* Barra slider */}
-      <input
-        ref={sliderRef}
-        type="range"
-        min={0}
-        max={100}
-        step={1}
-        value={value}
-        onChange={e => onChange(Number(e.target.value))}
-        className="agrado-slider"
-        style={{ '--val': `${value}%` } as React.CSSProperties}
-      />
+    <div style={{ padding: '24px 0 8px' }}>
 
-      {/* Etiquetas de posición */}
-      <div className="flex justify-between mt-1 text-xs text-amber-700 font-semibold px-1">
+      {/* Track custom */}
+      <div
+        ref={trackRef}
+        onClick={handleClick}
+        onMouseMove={handleMouseMove}
+        onTouchMove={handleTouchMove}
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '12px',
+          borderRadius: '99px',
+          background: `linear-gradient(to right, #e07020 ${value}%, #ecdcc4 ${value}%)`,
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+      >
+        {/* Zanahoria como thumb — sin círculo */}
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: `${value}%`,
+          transform: 'translate(-50%, -50%)',
+          fontSize: '2rem',
+          lineHeight: 1,
+          pointerEvents: 'none',
+          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+          transition: 'left 0.05s',
+        }}>
+          🥕
+        </div>
+      </div>
+
+      {/* Etiquetas */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between',
+        marginTop: '10px', fontSize: '0.72rem', fontWeight: 600,
+        color: 'var(--text-mid)', fontFamily: 'Inter, sans-serif', padding: '0 2px',
+      }}>
         <span>No me gusta</span>
-        <span className="text-center">Ni me gusta<br />ni me disgusta</span>
+        <span style={{ textAlign: 'center' }}>Ni gusta<br/>ni disgusta</span>
         <span>Me gusta</span>
       </div>
 
-      {/* Indicador actual */}
-      <div
-        className="mt-3 text-center text-sm font-bold py-2 px-4 rounded-full inline-block w-full transition-all"
-        style={{ background: getColor() + '22', color: getColor(), border: `1.5px solid ${getColor()}44` }}
-      >
-        {getLabel()}
+      {/* Label actual con cara */}
+      <div style={{
+        marginTop: '10px', textAlign: 'center', fontSize: '0.88rem',
+        fontWeight: 700, padding: '8px 16px', borderRadius: '99px',
+        background: '#e0702018', color: '#c45a14',
+        border: '1.5px solid #e0702033',
+        fontFamily: 'Inter, sans-serif',
+      }}>
+        {face} {text}
       </div>
     </div>
   )

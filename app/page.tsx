@@ -188,11 +188,11 @@ export default function HomePage() {
     finally { setLoading(false) }
   }
 
-  // ── Fondo con patrón ──────────────────────────────────────
+  // ── Fondo con patrón más oscuro ─────────────────────────
   const formBg = {
     backgroundImage: "url('/patron.jpg')",
     backgroundRepeat: 'repeat',
-    backgroundSize: '420px',
+    backgroundSize: '380px',
     backgroundAttachment: 'fixed',
   }
 
@@ -207,9 +207,12 @@ export default function HomePage() {
           <h1 className="hero-title">
             ¡Puntuá el <span>budín</span><br />con nosotros!
           </h1>
+          {/* Texto introductorio */}
           <p className="hero-subtitle">
-            Tu opinión es clave para mejorar este producto orgánico.<br />
-            Solo toma 3 minutos completar la evaluación.
+            Nuestro budín combina banana, zanahoria y lentejas con harina integral para crear
+            una opción casera, nutritiva y deliciosa. Su textura suave y húmeda, junto al dulzor
+            natural de la banana, lo convierten en una alternativa saludable ideal para cualquier
+            momento del día.
           </p>
           <div className="hero-ingredients">
             <span className="ingredient-chip">🥕 Zanahoria</span>
@@ -270,8 +273,8 @@ export default function HomePage() {
 
   return (
     <div style={{ minHeight: '100vh', ...formBg }}>
-      {/* Overlay suave sobre el patrón */}
-      <div style={{ minHeight: '100vh', background: 'rgba(253,248,242,0.88)' }}>
+      {/* Overlay sobre el patrón — más transparente para que se vean los colores */}
+      <div style={{ minHeight: '100vh', background: 'rgba(253,248,242,0.45)' }}>
 
         {/* Header con progreso */}
         <div className="form-header">
