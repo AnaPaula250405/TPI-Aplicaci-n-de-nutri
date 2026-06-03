@@ -38,62 +38,28 @@ export default function AgradoSlider({ value, onChange }: AgradoSliderProps) {
     onChange(Math.round(pct * 100))
   }
 
-  const pct = value / 100
-
   return (
     <div style={{ padding: '24px 0 8px' }}>
-
-      {/* Track custom */}
-      <div
-        ref={trackRef}
-        onClick={handleClick}
-        onMouseMove={handleMouseMove}
-        onTouchMove={handleTouchMove}
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '12px',
-          borderRadius: '99px',
+      <div ref={trackRef} onClick={handleClick} onMouseMove={handleMouseMove} onTouchMove={handleTouchMove}
+        style={{ position: 'relative', width: '100%', height: '12px', borderRadius: '99px',
           background: `linear-gradient(to right, #e07020 ${value}%, #ecdcc4 ${value}%)`,
-          cursor: 'pointer',
-          userSelect: 'none',
-        }}
-      >
-        {/* Zanahoria como thumb — sin círculo */}
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: `${value}%`,
-          transform: 'translate(-50%, -50%)',
-          fontSize: '2rem',
-          lineHeight: 1,
-          pointerEvents: 'none',
-          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
-          transition: 'left 0.05s',
-        }}>
-          🥕
-        </div>
+          cursor: 'pointer', userSelect: 'none' }}>
+        <div style={{ position: 'absolute', top: '50%', left: `${value}%`,
+          transform: 'translate(-50%, -50%)', fontSize: '2rem', lineHeight: 1,
+          pointerEvents: 'none', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+          transition: 'left 0.05s' }}>🥕</div>
       </div>
-
-      {/* Etiquetas */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between',
-        marginTop: '10px', fontSize: '0.72rem', fontWeight: 600,
-        color: 'var(--text-mid)', fontFamily: 'Inter, sans-serif', padding: '0 2px',
-      }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px',
+        fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-mid)',
+        fontFamily: 'Inter, sans-serif', padding: '0 2px' }}>
         <span>No me gusta</span>
         <span style={{ textAlign: 'center' }}>Ni gusta<br/>ni disgusta</span>
         <span>Me gusta</span>
       </div>
-
-      {/* Label actual con cara */}
-      <div style={{
-        marginTop: '10px', textAlign: 'center', fontSize: '0.88rem',
+      <div style={{ marginTop: '10px', textAlign: 'center', fontSize: '0.88rem',
         fontWeight: 700, padding: '8px 16px', borderRadius: '99px',
-        background: '#e0702018', color: '#c45a14',
-        border: '1.5px solid #e0702033',
-        fontFamily: 'Inter, sans-serif',
-      }}>
+        background: '#e0702018', color: '#c45a14', border: '1.5px solid #e0702033',
+        fontFamily: 'Inter, sans-serif' }}>
         {face} {text}
       </div>
     </div>

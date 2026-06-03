@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import AgradoSlider from '../components/form/AgradoSlider'
 import { SURVEY_QUESTIONS } from '../lib/patterns/Factory'
@@ -9,9 +9,9 @@ const MEJORIA_LABELS: Record<string,string> = {
   textura:'Textura', sabor:'Sabor', dulzor:'Dulzor',
   humedad:'Humedad', aroma:'Aroma', color:'Color', otro:'Otro',
 }
-
 const SECTIONS = ['Datos personales','Intención de consumo','Opinión personal','Perfil sensorial']
 const TOTAL_SECTIONS = SECTIONS.length
+const TIEMPO_LIMITE = 5 * 60 // 5 minutos en segundos
 
 function getSessionToken(): string {
   if (typeof window === 'undefined') return ''
@@ -23,9 +23,8 @@ function getSessionToken(): string {
   return token
 }
 
-// ── Componente: escala visual dinámica ──────────────────────
 interface VisualScaleProps {
-  options: { value: string; label: string; emoji?: string; color?: string }[]
+  options: { value: string; label: string; emoji?: string }[]
   selected: string
   onSelect: (v: string) => void
 }
@@ -35,34 +34,23 @@ function VisualScale({ options, selected, onSelect }: VisualScaleProps) {
     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
       {options.map((opt, i) => {
         const isSelected = selected === opt.value
-        const pct = ((i) / (options.length - 1)) * 100
-        const bg = isSelected
-          ? `hsl(${30 - (pct * 0.2)}, ${70 + pct * 0.3}%, ${isSelected ? 45 : 92}%)`
-          : '#fff9f2'
         return (
-          <button
-            key={opt.value}
-            onClick={() => onSelect(opt.value)}
+          <button key={opt.value} onClick={() => onSelect(opt.value)}
             style={{
-              flex: '1', minWidth: '70px',
-              padding: '14px 8px',
+              flex: '1', minWidth: '70px', padding: '14px 8px',
               border: isSelected ? '2px solid transparent' : '2px solid #ecdcc4',
-              borderRadius: '16px',
-              cursor: 'pointer',
+              borderRadius: '16px', cursor: 'pointer',
               background: isSelected
                 ? `linear-gradient(135deg, hsl(${35 - i*5}, 85%, 48%), hsl(${25 - i*5}, 75%, 42%))`
                 : '#fff9f2',
               color: isSelected ? 'white' : 'var(--text-dark)',
-              fontWeight: isSelected ? 700 : 500,
-              fontSize: '0.82rem',
-              fontFamily: 'Inter, sans-serif',
-              textAlign: 'center',
+              fontWeight: isSelected ? 700 : 500, fontSize: '0.82rem',
+              fontFamily: 'Inter, sans-serif', textAlign: 'center',
               transition: 'all 0.2s ease',
               transform: isSelected ? 'translateY(-3px) scale(1.04)' : 'none',
               boxShadow: isSelected ? '0 6px 18px rgba(212,106,26,0.35)' : '0 1px 4px rgba(0,0,0,0.05)',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-            }}
-          >
+            }}>
             {opt.emoji && <span style={{ fontSize: '1.5rem' }}>{opt.emoji}</span>}
             <span>{opt.label}</span>
           </button>
@@ -72,28 +60,23 @@ function VisualScale({ options, selected, onSelect }: VisualScaleProps) {
   )
 }
 
-// ── Componente: escala de humedad con barra visual ──────────
 function HumedadScale({ selected, onSelect }: { selected: string; onSelect: (v: string) => void }) {
   const options = [
     { value: 'muy_seco', label: 'Muy seco', emoji: '🏜️', fill: 10 },
-    { value: 'seco',     label: 'Seco',     emoji: '🌵', fill: 30 },
+    { value: 'seco', label: 'Seco', emoji: '🌵', fill: 30 },
     { value: 'adecuado', label: 'Adecuado', emoji: '✅', fill: 55 },
-    { value: 'humedo',   label: 'Húmedo',   emoji: '💧', fill: 78 },
+    { value: 'humedo', label: 'Húmedo', emoji: '💧', fill: 78 },
     { value: 'muy_humedo', label: 'Muy húmedo', emoji: '🌊', fill: 100 },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      {/* Barra visual de humedad */}
       <div style={{ height: '12px', borderRadius: '99px', overflow: 'hidden',
-        background: 'linear-gradient(to right, #f5d5a0, #a8d8ea)',
-        marginBottom: '4px', position: 'relative' }}>
+        background: 'linear-gradient(to right, #f5d5a0, #a8d8ea)', marginBottom: '4px', position: 'relative' }}>
         {selected && (
-          <div style={{
-            position: 'absolute', top: 0, left: 0, height: '100%',
+          <div style={{ position: 'absolute', top: 0, left: 0, height: '100%',
             width: `${options.find(o => o.value === selected)?.fill || 0}%`,
             background: 'linear-gradient(to right, #d4851a, #4aa8d8)',
-            borderRadius: '99px', transition: 'width 0.4s ease',
-          }}/>
+            borderRadius: '99px', transition: 'width 0.4s ease' }}/>
         )}
       </div>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -125,8 +108,10 @@ function HumedadScale({ selected, onSelect }: { selected: string; onSelect: (v: 
 
 export default function HomePage() {
   const router = useRouter()
-  const [view, setView] = useState<'landing' | 'form' | 'success'>('landing')
+  const [view, setView] = useState<'landing' | 'form' | 'success' | 'timeout'>('landing')
   const [currentSection, setCurrentSection] = useState(0)
+  const [tiempoRestante, setTiempoRestante] = useState(TIEMPO_LIMITE)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const [genero, setGenero] = useState('')
   const [consumiriaNuevamente, setConsumiriaNuevamente] = useState('')
@@ -139,11 +124,48 @@ export default function HomePage() {
   const [humedad, setHumedad] = useState('')
   const [color, setColor] = useState('')
   const [crujiente, setCrujiente] = useState('')
+  const [precioPagar, setPrecioPagar] = useState('')
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState<{msg: string; type: string} | null>(null)
   const [sessionToken, setSessionToken] = useState('')
 
   useEffect(() => { setSessionToken(getSessionToken()) }, [])
+
+  // ── Temporizador ──────────────────────────────────────────
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    if (view === 'form') {
+      setTiempoRestante(TIEMPO_LIMITE)
+      timerRef.current = setInterval(() => {
+        setTiempoRestante(prev => {
+          if (prev <= 1) {
+            stopTimer()
+            setView('timeout')
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    } else {
+      stopTimer()
+    }
+    return stopTimer
+  }, [view, stopTimer])
+
+  const formatTiempo = (seg: number) => {
+    const m = Math.floor(seg / 60)
+    const s = seg % 60
+    return `${m}:${s.toString().padStart(2, '0')}`
+  }
+
+  const tiempoColor = tiempoRestante <= 60 ? '#dc2626' : tiempoRestante <= 120 ? '#f59e0b' : '#166534'
+  const tiempoPct = (tiempoRestante / TIEMPO_LIMITE) * 100
 
   const showToast = (msg: string, type = 'error') => {
     setToast({ msg, type })
@@ -158,7 +180,7 @@ export default function HomePage() {
     if (currentSection === 0) return !!genero
     if (currentSection === 1) return !!consumiriaNuevamente && !!compraria
     if (currentSection === 2) return true
-    if (currentSection === 3) return !!saborPredominante && !!dulzor && !!humedad && !!color && !!crujiente
+    if (currentSection === 3) return !!saborPredominante && !!dulzor && !!humedad && !!color && !!crujiente && !!precioPagar
     return true
   }
 
@@ -170,6 +192,7 @@ export default function HomePage() {
 
   const handleSubmit = async () => {
     setLoading(true)
+    stopTimer()
     try {
       const res = await fetch('/api/submit', {
         method: 'POST',
@@ -178,6 +201,7 @@ export default function HomePage() {
           genero, consumiriaNuevamente, compraria,
           mejoraria, mejoriaOtro, nivelAgrado,
           saborPredominante, dulzor, humedad, color, crujiente,
+          precioPagar: Number(precioPagar),
           sessionToken,
         }),
       })
@@ -188,12 +212,41 @@ export default function HomePage() {
     finally { setLoading(false) }
   }
 
-  // ── Fondo con patrón más oscuro ─────────────────────────
+  const resetForm = () => {
+    setCurrentSection(0)
+    setGenero(''); setConsumiriaNuevamente(''); setCompraria('')
+    setMejoraria([]); setNivelAgrado(50); setSaborPredominante('')
+    setDulzor(''); setHumedad(''); setColor(''); setCrujiente(''); setPrecioPagar('')
+    sessionStorage.removeItem('survey_token')
+    setSessionToken(getSessionToken())
+  }
+
   const formBg = {
     backgroundImage: "url('/patron.jpg')",
     backgroundRepeat: 'repeat',
     backgroundSize: '380px',
     backgroundAttachment: 'fixed',
+  }
+
+  // ── TIMEOUT ───────────────────────────────────────────────
+  if (view === 'timeout') {
+    return (
+      <div className="success-screen">
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>⏰</div>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 700, color: '#dc2626', marginBottom: '0.75rem' }}>
+            ¡Tiempo agotado!
+          </h2>
+          <p style={{ color: 'var(--text-mid)', marginBottom: '2rem', maxWidth: '360px', lineHeight: 1.6 }}>
+            Los 5 minutos para completar la evaluación han terminado.
+            Tu respuesta no fue registrada. Podés intentarlo de nuevo.
+          </p>
+          <button className="btn-primary" onClick={() => { resetForm(); setView('form') }}>
+            Intentar de nuevo
+          </button>
+        </div>
+      </div>
+    )
   }
 
   // ── LANDING ───────────────────────────────────────────────
@@ -207,7 +260,6 @@ export default function HomePage() {
           <h1 className="hero-title">
             ¡Puntuá el <span>budín</span><br />con nosotros!
           </h1>
-          {/* Texto introductorio */}
           <p className="hero-subtitle">
             Nuestro budín combina banana, zanahoria y lentejas con harina integral para crear
             una opción casera, nutritiva y deliciosa. Su textura suave y húmeda, junto al dulzor
@@ -225,8 +277,11 @@ export default function HomePage() {
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </button>
-          <div style={{ marginTop: '2.5rem', opacity: 0.5, fontSize: '0.75rem', letterSpacing: '0.1em' }}>
-            ALTO EN FIBRA · ALTO EN PROTEÍNA · 100% ORGÁNICO
+          <div style={{ marginTop: '1.5rem', opacity: 0.6, fontSize: '0.78rem',
+            background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255,255,255,0.25)', borderRadius: '99px',
+            padding: '6px 16px', display: 'inline-block' }}>
+            ⏱ Tenés 5 minutos para completar la evaluación
           </div>
         </div>
         <button onClick={() => router.push('/admin')} style={{
@@ -234,8 +289,9 @@ export default function HomePage() {
           background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)',
           border: '1px solid rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.7)',
           padding: '6px 14px', borderRadius: '99px', fontSize: '0.72rem',
-          cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-        }}>Admin ↗</button>
+          cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
+          Admin ↗
+        </button>
       </div>
     )
   }
@@ -253,15 +309,12 @@ export default function HomePage() {
             Tu respuesta fue registrada correctamente y nos ayudará a mejorar el budín orgánico.
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button className="btn-primary" onClick={() => {
-              setView('landing'); setCurrentSection(0)
-              setGenero(''); setConsumiriaNuevamente(''); setCompraria('')
-              setMejoraria([]); setNivelAgrado(50); setSaborPredominante('')
-              setDulzor(''); setHumedad(''); setColor(''); setCrujiente('')
-              sessionStorage.removeItem('survey_token')
-              setSessionToken(getSessionToken())
-            }}>Nueva evaluación</button>
-            <button className="btn-secondary" onClick={() => setView('landing')}>Volver al inicio</button>
+            <button className="btn-primary" onClick={() => { resetForm(); setView('landing') }}>
+              Nueva evaluación
+            </button>
+            <button className="btn-secondary" onClick={() => setView('landing')}>
+              Volver al inicio
+            </button>
           </div>
         </div>
       </div>
@@ -273,10 +326,9 @@ export default function HomePage() {
 
   return (
     <div style={{ minHeight: '100vh', ...formBg }}>
-      {/* Overlay sobre el patrón — más transparente para que se vean los colores */}
       <div style={{ minHeight: '100vh', background: 'rgba(253,248,242,0.45)' }}>
 
-        {/* Header con progreso */}
+        {/* Header con progreso y temporizador */}
         <div className="form-header">
           <div className="form-header-content">
             <button onClick={() => currentSection === 0 ? setView('landing') : setCurrentSection(s => s - 1)}
@@ -286,20 +338,47 @@ export default function HomePage() {
                 fontSize: '0.82rem', fontFamily: 'Inter, sans-serif' }}>
               ← Atrás
             </button>
+
+            {/* Temporizador */}
+            <div style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)',
+              background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
+              border: `2px solid ${tiempoRestante <= 60 ? 'rgba(220,38,38,0.6)' : 'rgba(255,255,255,0.3)'}`,
+              borderRadius: '99px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.8rem' }}>⏱</span>
+              <span style={{ fontSize: '1rem', fontWeight: 800, color: tiempoRestante <= 60 ? '#fca5a5' : 'white',
+                fontFamily: 'Inter, sans-serif', letterSpacing: '0.05em',
+                animation: tiempoRestante <= 30 ? 'pulse 1s infinite' : 'none' }}>
+                {formatTiempo(tiempoRestante)}
+              </span>
+            </div>
+
             <p style={{ fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase',
               opacity: 0.75, marginBottom: '6px', fontFamily: 'Inter, sans-serif' }}>
               Paso {currentSection + 1} de {TOTAL_SECTIONS}
             </p>
             <h1 style={{ fontSize: '1.3rem', fontWeight: 700 }}>{SECTIONS[currentSection]}</h1>
-            <div className="progress-bar-container">
-              <div className="progress-bar-fill" style={{ width: `${progress + (100/TOTAL_SECTIONS)}%` }} />
+
+            {/* Barra de progreso del tiempo */}
+            <div style={{ marginTop: '0.75rem', maxWidth: '400px', margin: '0.75rem auto 0' }}>
+              <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '99px', height: '4px' }}>
+                <div style={{ height: '100%', borderRadius: '99px',
+                  width: `${progress + (100/TOTAL_SECTIONS)}%`,
+                  background: 'rgba(255,255,255,0.9)', transition: 'width 0.4s ease' }}/>
+              </div>
+              {/* Barra del tiempo */}
+              <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '99px', height: '3px', marginTop: '4px' }}>
+                <div style={{ height: '100%', borderRadius: '99px',
+                  width: `${tiempoPct}%`,
+                  background: tiempoRestante <= 60 ? 'rgba(220,38,38,0.8)' : tiempoRestante <= 120 ? 'rgba(245,158,11,0.8)' : 'rgba(255,255,255,0.5)',
+                  transition: 'width 1s linear, background 0.5s' }}/>
+              </div>
             </div>
           </div>
         </div>
 
         <div style={{ maxWidth: '640px', margin: '0 auto', padding: '1.5rem 1rem 6rem' }}>
 
-          {/* ── Sección 0: Datos personales ── */}
+          {/* ── Sección 0 ── */}
           {currentSection === 0 && (
             <div className="section-card">
               <span className="section-badge">Datos personales</span>
@@ -309,16 +388,14 @@ export default function HomePage() {
               {SURVEY_QUESTIONS.genero.options?.map(opt => (
                 <div key={opt.value} className={`option-item ${genero === opt.value ? 'selected' : ''}`}
                   onClick={() => setGenero(opt.value)}>
-                  <span className="option-indicator">
-                    {genero === opt.value && <span className="option-dot" />}
-                  </span>
+                  <span className="option-indicator">{genero === opt.value && <span className="option-dot"/>}</span>
                   {opt.label}
                 </div>
               ))}
             </div>
           )}
 
-          {/* ── Sección 1: Intención de consumo ── */}
+          {/* ── Sección 1 ── */}
           {currentSection === 1 && (
             <div className="section-card">
               <span className="section-badge">Intención de consumo</span>
@@ -328,9 +405,7 @@ export default function HomePage() {
               {SURVEY_QUESTIONS.consumiriaNuevamente.options?.map(opt => (
                 <div key={opt.value} className={`option-item ${consumiriaNuevamente === opt.value ? 'selected' : ''}`}
                   onClick={() => setConsumiriaNuevamente(opt.value)}>
-                  <span className="option-indicator">
-                    {consumiriaNuevamente === opt.value && <span className="option-dot" />}
-                  </span>
+                  <span className="option-indicator">{consumiriaNuevamente === opt.value && <span className="option-dot"/>}</span>
                   {opt.label}
                 </div>
               ))}
@@ -341,16 +416,44 @@ export default function HomePage() {
               {SURVEY_QUESTIONS.compraria.options?.map(opt => (
                 <div key={opt.value} className={`option-item ${compraria === opt.value ? 'selected' : ''}`}
                   onClick={() => setCompraria(opt.value)}>
-                  <span className="option-indicator">
-                    {compraria === opt.value && <span className="option-dot" />}
-                  </span>
+                  <span className="option-indicator">{compraria === opt.value && <span className="option-dot"/>}</span>
                   {opt.label}
                 </div>
               ))}
+
+              {/* Pregunta de precio */}
+              <div style={{ height: '1px', background: '#ecdcc4', margin: '1.5rem 0' }} />
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '1rem' }}>
+                💰 ¿Cuánto estarías dispuesto/a a pagar por este producto?
+              </h2>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)',
+                  fontWeight: 700, color: 'var(--brand-primary)', fontSize: '1.1rem', fontFamily: 'Inter, sans-serif' }}>
+                  $
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Ej: 500"
+                  value={precioPagar}
+                  onChange={e => setPrecioPagar(e.target.value)}
+                  style={{ width: '100%', padding: '14px 16px 14px 32px',
+                    border: '1.5px solid #ecdcc4', borderRadius: '14px',
+                    fontSize: '1rem', fontFamily: 'Inter, sans-serif',
+                    background: 'var(--cream)', color: 'var(--text-dark)',
+                    outline: 'none', transition: 'border-color 0.15s' }}
+                  onFocus={e => e.target.style.borderColor = 'var(--brand-primary)'}
+                  onBlur={e => e.target.style.borderColor = '#ecdcc4'}
+                />
+              </div>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-mid)', marginTop: '6px',
+                fontFamily: 'Inter, sans-serif' }}>
+                Ingresá un valor en pesos argentinos
+              </p>
             </div>
           )}
 
-          {/* ── Sección 2: Opinión personal ── */}
+          {/* ── Sección 2 ── */}
           {currentSection === 2 && (
             <div className="section-card">
               <span className="section-badge">Opinión personal</span>
@@ -383,46 +486,37 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* ── Sección 3: Perfil sensorial ── */}
+          {/* ── Sección 3 ── */}
           {currentSection === 3 && (
             <>
               <div className="section-card">
                 <span className="section-badge">Perfil sensorial</span>
-
-                {/* Sabor predominante */}
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '1.2rem' }}>
                   {SURVEY_QUESTIONS.saborPredominante.title}
                 </h2>
                 {SURVEY_QUESTIONS.saborPredominante.options?.map(opt => (
                   <div key={opt.value} className={`option-item ${saborPredominante === opt.value ? 'selected' : ''}`}
                     onClick={() => setSaborPredominante(opt.value)}>
-                    <span className="option-indicator">
-                      {saborPredominante === opt.value && <span className="option-dot" />}
-                    </span>
+                    <span className="option-indicator">{saborPredominante === opt.value && <span className="option-dot"/>}</span>
                     {opt.label}
                   </div>
                 ))}
               </div>
 
-              {/* Dulzor — escala visual dinámica */}
               <div className="section-card">
                 <span className="section-badge">Perfil sensorial</span>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '1rem' }}>
                   🍬 Nivel de dulzor
                 </h2>
-                <VisualScale
-                  selected={dulzor}
-                  onSelect={setDulzor}
+                <VisualScale selected={dulzor} onSelect={setDulzor}
                   options={[
-                    { value: 'bajo',     label: 'Bajo',     emoji: '😐' },
-                    { value: 'medio',    label: 'Medio',    emoji: '🙂' },
-                    { value: 'alto',     label: 'Alto',     emoji: '😊' },
+                    { value: 'bajo', label: 'Bajo', emoji: '😐' },
+                    { value: 'medio', label: 'Medio', emoji: '🙂' },
+                    { value: 'alto', label: 'Alto', emoji: '😊' },
                     { value: 'muy_alto', label: 'Muy alto', emoji: '🤩' },
-                  ]}
-                />
+                  ]} />
               </div>
 
-              {/* Humedad — barra dinámica */}
               <div className="section-card">
                 <span className="section-badge">Perfil sensorial</span>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '1rem' }}>
@@ -431,46 +525,36 @@ export default function HomePage() {
                 <HumedadScale selected={humedad} onSelect={setHumedad} />
               </div>
 
-              {/* Crujiente — nuevo */}
               <div className="section-card">
                 <span className="section-badge">Perfil sensorial</span>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '1rem' }}>
                   🥨 Nivel de crujiente
                 </h2>
-                <VisualScale
-                  selected={crujiente}
-                  onSelect={setCrujiente}
+                <VisualScale selected={crujiente} onSelect={setCrujiente}
                   options={[
-                    { value: 'nada',  label: 'Nada',  emoji: '🫠' },
-                    { value: 'poco',  label: 'Poco',  emoji: '😌' },
+                    { value: 'nada', label: 'Nada', emoji: '🫠' },
+                    { value: 'poco', label: 'Poco', emoji: '😌' },
                     { value: 'mucho', label: 'Mucho', emoji: '🥨' },
-                  ]}
-                />
+                  ]} />
               </div>
 
-              {/* Color con emojis */}
               <div className="section-card">
                 <span className="section-badge">Perfil sensorial</span>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '1rem' }}>
                   🎨 Apreciación del color
                 </h2>
-                <VisualScale
-                  selected={color}
-                  onSelect={setColor}
+                <VisualScale selected={color} onSelect={setColor}
                   options={[
-                    { value: 'desagradable',   label: 'Desagradable',   emoji: '🤢' },
+                    { value: 'desagradable', label: 'Desagradable', emoji: '🤢' },
                     { value: 'poco_agradable', label: 'Poco agradable', emoji: '😑' },
-                    { value: 'agradable',      label: 'Agradable',      emoji: '😍' },
-                  ]}
-                />
+                    { value: 'agradable', label: 'Agradable', emoji: '😍' },
+                  ]} />
               </div>
             </>
           )}
 
-          {/* Botón siguiente / enviar */}
           <div style={{ textAlign: 'center', paddingTop: '0.5rem' }}>
-            <button className="btn-primary" onClick={handleNext} disabled={loading}
-              style={{ minWidth: '220px' }}>
+            <button className="btn-primary" onClick={handleNext} disabled={loading} style={{ minWidth: '220px' }}>
               {loading ? 'Enviando...' : currentSection < TOTAL_SECTIONS - 1 ? 'Continuar →' : '✓ Enviar evaluación'}
             </button>
           </div>
