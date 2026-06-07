@@ -1,14 +1,12 @@
-/**
- * ============================================================
- * PATRÓN 3: FACTORY METHOD
- * ============================================================
- * Delega la creación de objetos "pregunta" a subclases/métodos
- * especializados. El cliente (formulario) no sabe cómo se
- * construye cada pregunta, sólo las consume.
- * ============================================================
- */
+// ============================================================
+// PATRÓN 3: FACTORY METHOD
+// ============================================================
+// En vez de crear cada pregunta a mano, usamos una "fábrica"
+// que se encarga de construirlas. Le decimos qué tipo de
+// pregunta queremos y ella nos la arma.
+// ============================================================
 
-// ── Tipos de preguntas ───────────────────────────────────────
+// Tipos de preguntas que puede haber en el formulario
 export type QuestionType = 'radio' | 'checkbox' | 'slider' | 'scale'
 
 export interface QuestionOption {
@@ -24,84 +22,33 @@ export interface Question {
   required: boolean
   section: string
 }
-// ────────────────────────────────────────────────────────────
 
-// ── Clase base abstracta ─────────────────────────────────────
-abstract class QuestionCreator {
-  abstract createQuestion(): Question
-}
-// ────────────────────────────────────────────────────────────
-
-// ── Creadores concretos ──────────────────────────────────────
-
-class RadioQuestionCreator extends QuestionCreator {
-  constructor(
-    private id: string,
-    private title: string,
-    private options: QuestionOption[],
-    private section: string
-  ) { super() }
-
-  createQuestion(): Question {
-    return { id: this.id, type: 'radio', title: this.title, options: this.options, required: true, section: this.section }
-  }
-}
-
-class CheckboxQuestionCreator extends QuestionCreator {
-  constructor(
-    private id: string,
-    private title: string,
-    private options: QuestionOption[],
-    private section: string
-  ) { super() }
-
-  createQuestion(): Question {
-    return { id: this.id, type: 'checkbox', title: this.title, options: this.options, required: false, section: this.section }
-  }
-}
-
-class SliderQuestionCreator extends QuestionCreator {
-  constructor(private id: string, private title: string, private section: string) { super() }
-
-  createQuestion(): Question {
-    return { id: this.id, type: 'slider', title: this.title, required: true, section: this.section }
-  }
-}
-
-class ScaleQuestionCreator extends QuestionCreator {
-  constructor(
-    private id: string,
-    private title: string,
-    private options: QuestionOption[],
-    private section: string
-  ) { super() }
-
-  createQuestion(): Question {
-    return { id: this.id, type: 'scale', title: this.title, options: this.options, required: true, section: this.section }
-  }
-}
-// ────────────────────────────────────────────────────────────
-
-// ── Fábrica principal ────────────────────────────────────────
+// La fábrica: tiene métodos estáticos para crear cada tipo de pregunta
 export class QuestionFactory {
+
+  // Crea una pregunta de opción única (radio button)
   static createRadio(id: string, title: string, options: QuestionOption[], section: string): Question {
-    return new RadioQuestionCreator(id, title, options, section).createQuestion()
+    return { id, type: 'radio', title, options, required: true, section }
   }
+
+  // Crea una pregunta de selección múltiple (checkboxes)
   static createCheckbox(id: string, title: string, options: QuestionOption[], section: string): Question {
-    return new CheckboxQuestionCreator(id, title, options, section).createQuestion()
+    return { id, type: 'checkbox', title, options, required: false, section }
   }
+
+  // Crea una barra deslizable
   static createSlider(id: string, title: string, section: string): Question {
-    return new SliderQuestionCreator(id, title, section).createQuestion()
+    return { id, type: 'slider', title, required: true, section }
   }
+
+  // Crea una escala de valoración
   static createScale(id: string, title: string, options: QuestionOption[], section: string): Question {
-    return new ScaleQuestionCreator(id, title, options, section).createQuestion()
+    return { id, type: 'scale', title, options, required: true, section }
   }
 }
-// ────────────────────────────────────────────────────────────
 
-// ── Definición de todas las preguntas del formulario ─────────
+// Acá definimos todas las preguntas del formulario usando la fábrica
 export const SURVEY_QUESTIONS = {
-  // Datos demográficos
   genero: QuestionFactory.createRadio('genero', '¿Con qué género te identificás?', [
     { value: 'femenino', label: 'Femenino' },
     { value: 'masculino', label: 'Masculino' },
@@ -109,7 +56,6 @@ export const SURVEY_QUESTIONS = {
     { value: 'prefiero_no_decir', label: 'Prefiero no decirlo' },
   ], 'Datos personales'),
 
-  // Sección 1 - Consumo
   consumiriaNuevamente: QuestionFactory.createRadio('consumiriaNuevamente', '¿Consumirías nuevamente este producto?', [
     { value: 'si', label: 'Sí' },
     { value: 'no', label: 'No' },
@@ -122,7 +68,6 @@ export const SURVEY_QUESTIONS = {
     { value: 'no', label: 'No' },
   ], 'Intención de consumo'),
 
-  // Sección 2 - Opinión personal
   mejoraria: QuestionFactory.createCheckbox('mejoraria', '¿Qué mejorarías del producto?', [
     { value: 'textura', label: 'Textura' },
     { value: 'sabor', label: 'Sabor' },
@@ -135,7 +80,6 @@ export const SURVEY_QUESTIONS = {
 
   nivelAgrado: QuestionFactory.createSlider('nivelAgrado', 'Nivel de agrado general', 'Opinión personal'),
 
-  // Sección 3 - Perfil sensorial
   saborPredominante: QuestionFactory.createRadio('saborPredominante', '¿Cuál es el sabor predominante?', [
     { value: 'banana', label: 'Banana' },
     { value: 'zanahoria', label: 'Zanahoria' },

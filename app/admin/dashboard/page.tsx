@@ -1,15 +1,13 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis,
-  Tooltip, ResponsiveContainer, Legend
-} from 'recharts'
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import type { ResultsSummary } from '../../../lib/patterns/Facade'
 
 const COLORS = ['#d4851a','#e8834a','#8b3e0f','#f0a050','#b86020','#f5c07a']
 
-const LABEL_MAPS: Record<string, Record<string, string>> = {
+// Traducciones para mostrar en los gráficos
+const LABELS: Record<string, Record<string, string>> = {
   genero: { femenino:'Femenino', masculino:'Masculino', otro:'Otro', prefiero_no_decir:'No dice' },
   consumiriaNuevamente: { si:'Sí', no:'No', tal_vez:'Tal vez' },
   compraria: { definitivamente_si:'Definitivamente sí', quizas:'Quizás', no:'No' },
@@ -18,14 +16,16 @@ const LABEL_MAPS: Record<string, Record<string, string>> = {
   dulzor: { bajo:'Bajo', medio:'Medio', alto:'Alto', muy_alto:'Muy alto' },
   humedad: { muy_seco:'Muy seco', seco:'Seco', adecuado:'Adecuado', humedo:'Húmedo', muy_humedo:'Muy húmedo' },
   color: { desagradable:'Desagradable', poco_agradable:'Poco agradable', agradable:'Agradable' },
+  crujiente: { nada:'Nada', poco:'Poco', mucho:'Mucho' },
 }
 
 function applyLabels(data: {name:string;value:number;percentage:string}[], key: string) {
-  return data.map(d => ({ ...d, name: LABEL_MAPS[key]?.[d.name] || d.name }))
+  return data.map(d => ({ ...d, name: LABELS[key]?.[d.name] || d.name }))
 }
 
+// Componente para mostrar barras horizontales con porcentajes
 function HorizBar({ data }: { data: {name:string;value:number;percentage:string}[] }) {
-  if (!data.length) return <p style={{textAlign:'center',color:'var(--text-mid)',fontSize:'0.85rem',padding:'1rem'}}>Sin datos aún</p>
+  if (!data.length) return <p style={{ textAlign:'center', color:'var(--text-mid)', fontSize:'0.85rem', padding:'1rem' }}>Sin datos aún</p>
   const total = data.reduce((a,d) => a+d.value, 0)
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
@@ -34,15 +34,14 @@ function HorizBar({ data }: { data: {name:string;value:number;percentage:string}
           <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.82rem',
             fontWeight:500, color:'var(--text-mid)', marginBottom:'4px', fontFamily:'Inter,sans-serif' }}>
             <span>{d.name}</span>
-            <span>{d.value} · {total ? ((d.value/total)*100).toFixed(1) : 0}%</span>
+            <span>{d.value} resp. · {total ? ((d.value/total)*100).toFixed(1) : 0}%</span>
           </div>
           <div style={{ height:'28px', borderRadius:'99px', overflow:'hidden', background:'#f0e6d3' }}>
             <div style={{
               height:'100%', borderRadius:'99px',
               width: total ? `${(d.value/total)*100}%` : '0%',
               background: `linear-gradient(90deg, ${COLORS[i%COLORS.length]}, ${COLORS[(i+1)%COLORS.length]})`,
-              minWidth: d.value > 0 ? '2rem' : '0',
-              transition: 'width 0.8s ease',
+              minWidth: d.value > 0 ? '2rem' : '0', transition: 'width 0.8s ease',
             }}/>
           </div>
         </div>
@@ -51,6 +50,7 @@ function HorizBar({ data }: { data: {name:string;value:number;percentage:string}
   )
 }
 
+// Tarjeta para cada gráfico
 function ResultCard({ title, badge, children }: { title:string; badge:string; children:React.ReactNode }) {
   return (
     <div className="result-card">
@@ -73,6 +73,7 @@ export default function DashboardPage() {
     setToken(t)
   }, [router])
 
+  // Función para traer los resultados del servidor
   const fetchResults = useCallback(async () => {
     if (!token) return
     try {
@@ -83,6 +84,7 @@ export default function DashboardPage() {
     finally { setLoading(false) }
   }, [token, router])
 
+  // Cargar resultados y actualizar cada 15 segundos
   useEffect(() => {
     if (token) {
       fetchResults()
@@ -91,6 +93,7 @@ export default function DashboardPage() {
     }
   }, [token, fetchResults])
 
+  // Descargar CSV
   const handleExport = async () => {
     const res = await fetch('/api/export', { headers: { 'x-admin-token': token } })
     const blob = await res.blob()
@@ -119,10 +122,9 @@ export default function DashboardPage() {
 
   return (
     <div style={{ minHeight:'100vh', background:'var(--cream)' }}>
-      {/* Header admin */}
+      {/* Header del panel */}
       <div style={{ background:'linear-gradient(135deg, #1a0e06, #5c2710)', color:'white',
-        padding:'1.5rem', display:'flex', justifyContent:'space-between', alignItems:'center',
-        flexWrap:'wrap', gap:'1rem' }}>
+        padding:'1.5rem', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'1rem' }}>
         <div>
           <p style={{ fontSize:'0.7rem', letterSpacing:'0.15em', textTransform:'uppercase',
             opacity:0.7, fontFamily:'Inter,sans-serif', marginBottom:'4px' }}>Panel de administración</p>
@@ -144,17 +146,14 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Total respuestas */}
-      <div style={{ background:'linear-gradient(135deg, #8b3e0f, #d4851a)', padding:'2rem',
-        textAlign:'center', color:'white' }}>
-        <div style={{ fontSize:'3.5rem', fontWeight:900, fontFamily:'Playfair Display,serif' }}>
-          {total}
-        </div>
+      {/* Total de respuestas */}
+      <div style={{ background:'linear-gradient(135deg, #8b3e0f, #d4851a)', padding:'2rem', textAlign:'center', color:'white' }}>
+        <div style={{ fontSize:'3.5rem', fontWeight:900, fontFamily:'Playfair Display,serif' }}>{total}</div>
         <p style={{ opacity:0.85, fontFamily:'Inter,sans-serif', fontSize:'0.9rem' }}>
           {total === 1 ? 'respuesta recibida' : 'respuestas recibidas'}
         </p>
         <p style={{ opacity:0.55, fontSize:'0.72rem', marginTop:'6px', fontFamily:'Inter,sans-serif' }}>
-          Actualización automática cada 15 segundos
+          Se actualiza automáticamente cada 15 segundos
         </p>
       </div>
 
@@ -163,13 +162,10 @@ export default function DashboardPage() {
           <div style={{ textAlign:'center', padding:'4rem 2rem' }}>
             <div style={{ fontSize:'3rem', marginBottom:'1rem' }}>📋</div>
             <h2 style={{ color:'var(--brand-dark)', marginBottom:'0.5rem' }}>Aún no hay respuestas</h2>
-            <p style={{ color:'var(--text-mid)', fontSize:'0.9rem' }}>
-              Compartí el formulario con los evaluadores para comenzar.
-            </p>
+            <p style={{ color:'var(--text-mid)', fontSize:'0.9rem' }}>Compartí el formulario con los evaluadores.</p>
           </div>
         ) : (
           <>
-            {/* Género */}
             <ResultCard title="Distribución por género" badge="Datos demográficos">
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
@@ -182,16 +178,6 @@ export default function DashboardPage() {
                   <Legend/>
                 </PieChart>
               </ResponsiveContainer>
-              <div style={{ textAlign:'center', fontSize:'0.82rem', color:'var(--text-mid)',
-                marginTop:'0.75rem', fontFamily:'Inter,sans-serif' }}>
-                {(() => {
-                  const f = data!.generoChart.find(d=>d.name==='femenino')?.value ?? 0
-                  const m = data!.generoChart.find(d=>d.name==='masculino')?.value ?? 0
-                  if (f>m) return '💜 Más popular entre mujeres'
-                  if (m>f) return '💙 Más popular entre hombres'
-                  return '⚖️ Igual entre géneros'
-                })()}
-              </div>
             </ResultCard>
 
             <ResultCard title="¿Consumiría nuevamente?" badge="Intención de consumo">
@@ -202,10 +188,21 @@ export default function DashboardPage() {
               <HorizBar data={applyLabels(data!.comprariaChart,'compraria')}/>
             </ResultCard>
 
+            {/* Precio promedio */}
+            <ResultCard title="Precio dispuesto a pagar" badge="Intención de consumo">
+              <div style={{ textAlign:'center' }}>
+                <span style={{ fontSize:'3rem', fontWeight:900, color:'var(--brand-primary)', fontFamily:'Playfair Display,serif' }}>
+                  ${data!.precioPromedio?.toFixed(0) || 0}
+                </span>
+                <p style={{ color:'var(--text-mid)', fontSize:'0.85rem', fontFamily:'Inter,sans-serif', marginTop:'4px' }}>
+                  promedio en pesos argentinos
+                </p>
+              </div>
+            </ResultCard>
+
             <ResultCard title="Nivel de agrado general" badge="Opinión personal">
               <div style={{ textAlign:'center', marginBottom:'1rem' }}>
-                <span style={{ fontSize:'3rem', fontWeight:900, color:'var(--brand-primary)',
-                  fontFamily:'Playfair Display,serif' }}>
+                <span style={{ fontSize:'3rem', fontWeight:900, color:'var(--brand-primary)', fontFamily:'Playfair Display,serif' }}>
                   {data!.agradoPromedio.toFixed(1)}
                 </span>
                 <span style={{ color:'var(--text-mid)', fontFamily:'Inter,sans-serif' }}> / 100</span>
@@ -213,11 +210,9 @@ export default function DashboardPage() {
               <div style={{ height:'14px', borderRadius:'99px', overflow:'hidden', background:'#f0e6d3', marginBottom:'8px' }}>
                 <div style={{ height:'100%', borderRadius:'99px', transition:'width 1s ease',
                   width:`${data!.agradoPromedio}%`,
-                  background:'linear-gradient(90deg, #8b3e0f, #d4851a, #f0a050)',
-                  minWidth:'2rem' }}/>
+                  background:'linear-gradient(90deg, #8b3e0f, #d4851a, #f0a050)', minWidth:'2rem' }}/>
               </div>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.75rem',
-                color:'var(--text-mid)', fontFamily:'Inter,sans-serif' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.75rem', color:'var(--text-mid)', fontFamily:'Inter,sans-serif' }}>
                 <span>No me gusta</span><span>Ni gusta ni disgusta</span><span>Me gusta</span>
               </div>
             </ResultCard>
@@ -247,16 +242,15 @@ export default function DashboardPage() {
               <HorizBar data={applyLabels(data!.humedadChart,'humedad')}/>
             </ResultCard>
 
+            <ResultCard title="Nivel de crujiente" badge="Perfil sensorial">
+              <HorizBar data={applyLabels(data!.colorChart.map ? data!.colorChart : [], 'crujiente')}/>
+            </ResultCard>
+
             <ResultCard title="Apreciación del color" badge="Perfil sensorial">
               <HorizBar data={applyLabels(data!.colorChart,'color')}/>
             </ResultCard>
           </>
         )}
-      </div>
-
-      <div style={{ background:'#1a0e06', color:'rgba(255,255,255,0.4)', textAlign:'center',
-        padding:'1rem', fontSize:'0.7rem', fontFamily:'Inter,sans-serif', letterSpacing:'0.05em' }}>
-        PANEL PRIVADO · SOLO ADMINISTRADORES · DATOS ANONIMIZADOS
       </div>
     </div>
   )

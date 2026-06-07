@@ -1,3 +1,5 @@
+// API para verificar que el sistema está funcionando
+// El coordinador puede entrar a /api/health antes de una sesión
 import { NextResponse } from 'next/server'
 import { getStore } from '../../../lib/store/ResponseStore'
 

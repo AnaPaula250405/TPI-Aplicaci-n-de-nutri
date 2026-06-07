@@ -1,11 +1,14 @@
+// Conexión a la base de datos Neon (PostgreSQL en la nube)
 import { neon } from '@neondatabase/serverless'
 
+// Devuelve la conexión a la base de datos
 export function getDb() {
   const url = process.env.DATABASE_URL || process.env.STORAGE_URL
-  if (!url) throw new Error('DATABASE_URL no configurada')
+  if (!url) throw new Error('No hay URL de base de datos configurada')
   return neon(url)
 }
 
+// Crea la tabla si no existe todavía
 export async function initDb() {
   const sql = getDb()
   await sql`
@@ -23,11 +26,11 @@ export async function initDb() {
       dulzor TEXT NOT NULL,
       humedad TEXT NOT NULL,
       color TEXT NOT NULL,
-      crujiente TEXT NOT NULL DEFAULT 'nada'
+      crujiente TEXT NOT NULL DEFAULT 'nada',
+      precio_pagar INTEGER NOT NULL DEFAULT 0
     )
   `
-  // Agregar columna si no existe (para bases de datos ya creadas)
-  try {
-    await sql`ALTER TABLE survey_responses ADD COLUMN IF NOT EXISTS crujiente TEXT NOT NULL DEFAULT 'nada'`
-  } catch {}
+  // Agrega columnas nuevas si la tabla ya existía
+  try { await sql`ALTER TABLE survey_responses ADD COLUMN IF NOT EXISTS crujiente TEXT NOT NULL DEFAULT 'nada'` } catch {}
+  try { await sql`ALTER TABLE survey_responses ADD COLUMN IF NOT EXISTS precio_pagar INTEGER NOT NULL DEFAULT 0` } catch {}
 }

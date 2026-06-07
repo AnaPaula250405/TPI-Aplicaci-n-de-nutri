@@ -1,3 +1,4 @@
+// API para descargar todas las respuestas en formato CSV
 import { NextRequest, NextResponse } from 'next/server'
 import { getStore } from '../../../lib/store/ResponseStore'
 import { getDb, initDb } from '../../../lib/db'
@@ -9,14 +10,14 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    let csv = 'id,timestamp,genero,consumiriaNuevamente,compraria,mejoraria,nivelAgrado,saborPredominante,dulzor,humedad,color\n'
+    let csv = 'id,timestamp,genero,consumiriaNuevamente,compraria,mejoraria,nivelAgrado,saborPredominante,dulzor,humedad,color,crujiente,precioPagar\n'
 
     if (process.env.DATABASE_URL || process.env.STORAGE_URL) {
       await initDb()
       const sql = getDb()
       const rows = await sql`SELECT * FROM survey_responses ORDER BY timestamp ASC`
       rows.forEach((r: Record<string, unknown>) => {
-        csv += `"${r.id}","${r.timestamp}","${r.genero}","${r.consumiria_nuevamente}","${r.compraria}","${r.mejoraria}","${r.nivel_agrado}","${r.sabor_predominante}","${r.dulzor}","${r.humedad}","${r.color}"\n`
+        csv += `"${r.id}","${r.timestamp}","${r.genero}","${r.consumiria_nuevamente}","${r.compraria}","${r.mejoraria}","${r.nivel_agrado}","${r.sabor_predominante}","${r.dulzor}","${r.humedad}","${r.color}","${r.crujiente}","${r.precio_pagar}"\n`
       })
     } else {
       csv = getStore().toCSV()

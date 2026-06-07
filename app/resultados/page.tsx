@@ -1,7 +1,7 @@
 'use client'
 import { useRouter } from 'next/navigation'
 
-// Esta página es pública pero NO muestra datos individuales (RNF #7 y #8)
+// Esta página es pública pero los resultados son solo para admin
 export default function ResultadosPublicosPage() {
   const router = useRouter()
   return (
@@ -14,16 +14,11 @@ export default function ResultadosPublicosPage() {
         </h2>
         <p style={{ color:'var(--text-mid)', maxWidth:'360px', lineHeight:1.6,
           fontFamily:'Inter,sans-serif', fontSize:'0.9rem', marginBottom:'2rem' }}>
-          Los resultados de la evaluación son accesibles únicamente para el equipo de investigación.
-          Si sos parte del equipo, ingresá con tu contraseña.
+          Los resultados son accesibles únicamente para el equipo de investigación.
         </p>
         <div style={{ display:'flex', gap:'12px', justifyContent:'center', flexWrap:'wrap' }}>
-          <button className="btn-primary" onClick={() => router.push('/admin')}>
-            Ir al panel admin
-          </button>
-          <button className="btn-secondary" onClick={() => router.push('/')}>
-            Volver al formulario
-          </button>
+          <button className="btn-primary" onClick={() => router.push('/admin')}>Ir al panel admin</button>
+          <button className="btn-secondary" onClick={() => router.push('/')}>Volver al formulario</button>
         </div>
       </div>
     </div>
