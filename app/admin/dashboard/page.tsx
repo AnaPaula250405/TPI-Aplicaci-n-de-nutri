@@ -167,17 +167,40 @@ export default function DashboardPage() {
         ) : (
           <>
             <ResultCard title="Distribución por género" badge="Datos demográficos">
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={applyLabels(data!.generoChart,'genero')} dataKey="value" nameKey="name"
-                    cx="50%" cy="50%" outerRadius={75}
-                    label={({name,percent}) => `${name} ${(percent*100).toFixed(0)}%`} labelLine={false}>
-                    {data!.generoChart.map((_,i) => <Cell key={i} fill={COLORS[i%COLORS.length]}/>)}
-                  </Pie>
-                  <Tooltip formatter={v => [`${v} resp.`]}/>
-                  <Legend/>
-                </PieChart>
-              </ResponsiveContainer>
+              <div style={{ display:'flex', alignItems:'center', gap:'1.5rem', flexWrap:'wrap' }}>
+                {/* Gráfico de torta sin etiquetas */}
+                <div style={{ flex:'0 0 160px' }}>
+                  <ResponsiveContainer width={160} height={160}>
+                    <PieChart>
+                      <Pie data={applyLabels(data!.generoChart,'genero')}
+                        dataKey="value" nameKey="name"
+                        cx="50%" cy="50%" outerRadius={70} innerRadius={30}
+                        label={false} labelLine={false}>
+                        {data!.generoChart.map((_,i) => <Cell key={i} fill={COLORS[i%COLORS.length]}/>)}
+                      </Pie>
+                      <Tooltip formatter={(v, name) => [`${v} respuestas`, name]}/>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                {/* Lista de etiquetas al costado */}
+                <div style={{ flex:1, display:'flex', flexDirection:'column', gap:'10px' }}>
+                  {(() => {
+                    const total = data!.generoChart.reduce((a,x) => a+x.value, 0)
+                    return applyLabels(data!.generoChart,'genero').map((d,i) => (
+                      <div key={d.name} style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                        <span style={{ width:14, height:14, borderRadius:'3px', flexShrink:0,
+                          background:COLORS[i%COLORS.length], display:'inline-block' }}/>
+                        <span style={{ fontSize:'0.88rem', fontFamily:'Inter,sans-serif',
+                          color:'var(--text-dark)', fontWeight:500, flex:1 }}>{d.name}</span>
+                        <span style={{ fontSize:'0.88rem', fontFamily:'Inter,sans-serif',
+                          color:'var(--text-mid)', fontWeight:700 }}>
+                          {total ? ((d.value/total)*100).toFixed(0) : 0}%
+                        </span>
+                      </div>
+                    ))
+                  })()}
+                </div>
+              </div>
             </ResultCard>
 
             <ResultCard title="¿Consumiría nuevamente?" badge="Intención de consumo">
