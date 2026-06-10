@@ -63,8 +63,10 @@ export class SurveyFacade {
       ? responses.reduce((a, r) => a + r.nivelAgrado, 0) / responses.length
       : 0
 
-    const precioPromedio = responses.length
-      ? responses.reduce((a, r) => a + (r.precioPagar || 0), 0) / responses.length
+    // Solo promediamos las respuestas donde el usuario completó el precio (mayor a 0)
+    const responsesConPrecio = responses.filter(r => r.precioPagar && r.precioPagar > 0)
+    const precioPromedio = responsesConPrecio.length
+      ? responsesConPrecio.reduce((a, r) => a + r.precioPagar, 0) / responsesConPrecio.length
       : 0
 
     return {
