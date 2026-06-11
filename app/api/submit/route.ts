@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
 
     // Si hay base de datos, guardar ahí
-    if (process.env.DATABASE_URL || process.env.STORAGE_URL) {
+    if (process.env.DATABASE_URL || process.env.STORAGE_URL || process.env.POSTGRES_URL) {
       await initDb()
       const sql = getDb()
 

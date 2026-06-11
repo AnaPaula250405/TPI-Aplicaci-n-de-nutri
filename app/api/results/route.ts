@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    if (process.env.DATABASE_URL || process.env.STORAGE_URL) {
+    if (process.env.DATABASE_URL || process.env.STORAGE_URL || process.env.POSTGRES_URL) {
       await initDb()
       const sql = getDb()
       const rows = await sql`SELECT * FROM survey_responses ORDER BY timestamp DESC`
