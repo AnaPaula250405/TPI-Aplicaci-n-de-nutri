@@ -68,30 +68,23 @@ export default function DashboardPage() {
   const [token, setToken] = useState('')
 
   useEffect(() => {
-    const t = sessionStorage.getItem('admin_token') || ''
-    if (!t) { router.push('/admin'); return }
-    setToken(t)
-  }, [router])
+  const t = sessionStorage.getItem('admin_token') || ''
+  if (!t) { router.push('/admin'); return }
+  setToken(t)
 
-  // Función para traer los resultados del servidor
-  const fetchResults = useCallback(async () => {
-    if (!token) return
+  const doFetch = async () => {
     try {
-      const res = await fetch('/api/results', { headers: { 'x-admin-token': token } })
+      const res = await fetch('/api/results', { headers: { 'x-admin-token': t } })
       if (res.status === 401) { router.push('/admin'); return }
       setData(await res.json())
     } catch(e) { console.error(e) }
     finally { setLoading(false) }
-  }, [token, router])
+  }
 
-  // Cargar resultados y actualizar cada 15 segundos
-  useEffect(() => {
-    if (token) {
-      fetchResults()
-      const interval = setInterval(fetchResults, 15000)
-      return () => clearInterval(interval)
-    }
-  }, [token, fetchResults])
+  doFetch()
+  const interval = setInterval(doFetch, 15000)
+  return () => clearInterval(interval)
+}, [router])
 
   // Descargar CSV
   const handleExport = async () => {
