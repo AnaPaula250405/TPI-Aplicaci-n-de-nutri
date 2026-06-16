@@ -1,0 +1,123 @@
+diff --git a/app/resultados/page.tsx b/app/resultados/page.tsx
+--- a/app/resultados/page.tsx
++++ b/app/resultados/page.tsx
+@@ -20,1 +20,1 @@
+-          <button className="btn-primary" onClick={() => router.push('/admin')}>Ir al panel admin</button>
++          <button className="btn-primary" onClick={() => { router.push('/admin'); }}>Ir al panel admin</button>
+@@ -21,1 +21,1 @@
+-          <button className="btn-secondary" onClick={() => router.push('/')}>Volver al formulario</button>
++          <button className="btn-secondary" onClick={() => { router.push('/'); }}>Volver al formulario</button>
+diff --git a/app/admin/page.tsx b/app/admin/page.tsx
+--- a/app/admin/page.tsx
++++ b/app/admin/page.tsx
+@@ -55,1 +55,1 @@
+-          value={password} onChange={e => setPassword(e.target.value)}
++          value={password} onChange={e => { setPassword(e.target.value); }}
+@@ -61,1 +61,1 @@
+-        <button onClick={() => router.push('/')}
++        <button onClick={() => { router.push('/'); }}
+diff --git a/app/admin/dashboard/page.tsx b/app/admin/dashboard/page.tsx
+--- a/app/admin/dashboard/page.tsx
++++ b/app/admin/dashboard/page.tsx
+@@ -23,1 +23,1 @@
+-  return data.map(d => ({ ...d, name: LABELS[key]?.[d.name] || d.name }))
++  return data.map(d => ({ ...d, name: LABELS[key][d.name] || d.name }))
+@@ -84,1 +84,1 @@
+-  doFetch()
++  void doFetch()
+@@ -86,1 +86,1 @@
+-      return () => clearInterval(interval)
++      return () => { clearInterval(interval); }
+@@ -168,1 +168,1 @@
+-                      <Pie data={applyLabels(data!.generoChart,'genero')}
++                      <Pie data={applyLabels(data?.generoChart,'genero')}
+@@ -172,1 +172,1 @@
+-                        {data!.generoChart.map((_,i) => <Cell key={i} fill={COLORS[i%COLORS.length]}/>)}
++                        {data?.generoChart.map((_,i) => <Cell key={i} fill={COLORS[i%COLORS.length]}/>)}
+@@ -181,1 +181,1 @@
+-                    const total = data!.generoChart.reduce((a,x) => a+x.value, 0)
++                    const total = data?.generoChart.reduce((a,x) => a+x.value, 0)
+@@ -182,1 +182,1 @@
+-                    return applyLabels(data!.generoChart,'genero').map((d,i) => (
++                    return applyLabels(data?.generoChart,'genero').map((d,i) => (
+@@ -200,1 +200,1 @@
+-              <HorizBar data={applyLabels(data!.consumiriaChart,'consumiriaNuevamente')}/>
++              <HorizBar data={applyLabels(data?.consumiriaChart,'consumiriaNuevamente')}/>
+@@ -204,1 +204,1 @@
+-              <HorizBar data={applyLabels(data!.comprariaChart,'compraria')}/>
++              <HorizBar data={applyLabels(data?.comprariaChart,'compraria')}/>
+@@ -211,1 +211,1 @@
+-                  ${data!.precioPromedio?.toFixed(0) || 0}
++                  ${data!.precioPromedio.toFixed(0) || 0}
+@@ -222,1 +222,1 @@
+-                  {data!.agradoPromedio.toFixed(1)}
++                  {data?.agradoPromedio.toFixed(1)}
+@@ -228,1 +228,1 @@
+-                  width:`${data!.agradoPromedio}%`,
++                  width:`${data?.agradoPromedio}%`,
+@@ -237,1 +237,1 @@
+-              <HorizBar data={applyLabels(data!.mejorariaChart,'mejoraria')}/>
++              <HorizBar data={applyLabels(data?.mejorariaChart,'mejoraria')}/>
+@@ -242,1 +242,1 @@
+-                <BarChart data={applyLabels(data!.saborChart,'sabor')} margin={{top:5,right:10,left:-20,bottom:5}}>
++                <BarChart data={applyLabels(data?.saborChart,'sabor')} margin={{top:5,right:10,left:-20,bottom:5}}>
+@@ -247,1 +247,1 @@
+-                    {data!.saborChart.map((_,i)=><Cell key={i} fill={COLORS[i%COLORS.length]}/>)}
++                    {data?.saborChart.map((_,i)=><Cell key={i} fill={COLORS[i%COLORS.length]}/>)}
+@@ -254,1 +254,1 @@
+-              <HorizBar data={applyLabels(data!.dulzorChart,'dulzor')}/>
++              <HorizBar data={applyLabels(data?.dulzorChart,'dulzor')}/>
+@@ -258,1 +258,1 @@
+-              <HorizBar data={applyLabels(data!.humedadChart,'humedad')}/>
++              <HorizBar data={applyLabels(data?.humedadChart,'humedad')}/>
+@@ -262,1 +262,1 @@
+-              <HorizBar data={applyLabels(data!.crujienteChart, 'crujiente')}/>
++              <HorizBar data={applyLabels(data?.crujienteChart, 'crujiente')}/>
+@@ -266,1 +266,1 @@
+-              <HorizBar data={applyLabels(data!.colorChart,'color')}/>
++              <HorizBar data={applyLabels(data?.colorChart,'color')}/>
+diff --git a/app/page.tsx b/app/page.tsx
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -38,1 +38,1 @@
+-          <button key={opt.value} onClick={() => onSelect(opt.value)}
++          <button key={opt.value} onClick={() => { onSelect(opt.value); }}
+@@ -172,1 +172,1 @@
+-    setTimeout(() => setToast(null), 3500)
++    setTimeout(() => { setToast(null); }, 3500)
+@@ -190,1 +190,1 @@
+-    else handleSubmit()
++    else void handleSubmit()
+@@ -274,1 +274,1 @@
+-          <button className="btn-hero" onClick={() => setView('form')}>
++          <button className="btn-hero" onClick={() => { setView('form'); }}>
+@@ -287,1 +287,1 @@
+-        <button onClick={() => router.push('/admin')} style={{
++        <button onClick={() => { router.push('/admin'); }} style={{
+@@ -315,1 +315,1 @@
+-            <button className="btn-secondary" onClick={() => setView('landing')}>
++            <button className="btn-secondary" onClick={() => { setView('landing'); }}>
+@@ -334,1 +334,1 @@
+-            <button onClick={() => currentSection === 0 ? setView('landing') : setCurrentSection(s => s - 1)}
++            <button onClick={() => { currentSection === 0 ? setView('landing') : setCurrentSection(s => s - 1); }}
+@@ -390,1 +390,1 @@
+-                  onClick={() => setGenero(opt.value)}>
++                  onClick={() => { setGenero(opt.value); }}>
+@@ -407,1 +407,1 @@
+-                  onClick={() => setConsumiriaNuevamente(opt.value)}>
++                  onClick={() => { setConsumiriaNuevamente(opt.value); }}>
+@@ -418,1 +418,1 @@
+-                  onClick={() => setCompraria(opt.value)}>
++                  onClick={() => { setCompraria(opt.value); }}>
+@@ -439,1 +439,1 @@
+-                  onChange={e => setPrecioPagar(e.target.value)}
++                  onChange={e => { setPrecioPagar(e.target.value); }}
+@@ -465,1 +465,1 @@
+-                  onClick={() => toggleMejoria(val)}>
++                  onClick={() => { toggleMejoria(val); }}>
+@@ -478,1 +478,1 @@
+-                  value={mejoriaOtro} onChange={e => setMejoriaOtro(e.target.value)}
++                  value={mejoriaOtro} onChange={e => { setMejoriaOtro(e.target.value); }}
+@@ -499,1 +499,1 @@
+-                    onClick={() => setSaborPredominante(opt.value)}>
++                    onClick={() => { setSaborPredominante(opt.value); }}>

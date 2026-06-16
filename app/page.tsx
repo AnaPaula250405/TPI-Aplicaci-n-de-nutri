@@ -35,7 +35,7 @@ function VisualScale({ options, selected, onSelect }: VisualScaleProps) {
       {options.map((opt, i) => {
         const isSelected = selected === opt.value
         return (
-          <button key={opt.value} onClick={() => onSelect(opt.value)}
+          <button key={opt.value} onClick={() => { onSelect(opt.value); }}
             style={{
               flex: '1', minWidth: '70px', padding: '14px 8px',
               border: isSelected ? '2px solid transparent' : '2px solid #ecdcc4',
@@ -83,7 +83,7 @@ function HumedadScale({ selected, onSelect }: { selected: string; onSelect: (v: 
         {options.map(opt => {
           const isSelected = selected === opt.value
           return (
-            <button key={opt.value} onClick={() => onSelect(opt.value)}
+            <button key={opt.value} onClick={() => { onSelect(opt.value); }}
               style={{
                 flex: '1', minWidth: '65px', padding: '12px 6px',
                 border: isSelected ? '2px solid #4aa8d8' : '2px solid #ecdcc4',
@@ -169,7 +169,7 @@ export default function HomePage() {
 
   const showToast = (msg: string, type = 'error') => {
     setToast({ msg, type })
-    setTimeout(() => setToast(null), 3500)
+    setTimeout(() => { setToast(null); }, 3500)
   }
 
   const toggleMejoria = (val: string) => {
@@ -269,9 +269,9 @@ export default function HomePage() {
           <div className="hero-ingredients">
             <span className="ingredient-chip">🥕 Zanahoria</span>
             <span className="ingredient-chip">🍌 Banana</span>
-            <span className="ingredient-chip">🌿 Lenteja Turca</span>
+            <span className="ingredient-chip">🌿 Lenteja Turca</span> 
           </div>
-          <button className="btn-hero" onClick={() => setView('form')}>
+          <button className="btn-hero" onClick={() => { setView('form'); }}>
             Comenzar evaluación
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -284,7 +284,7 @@ export default function HomePage() {
             ⏱ Tenés 5 minutos para completar la evaluación
           </div>
         </div>
-        <button onClick={() => router.push('/admin')} style={{
+        <button onClick={() => { router.push('/admin'); }} style={{
           position: 'absolute', bottom: '1.5rem', right: '1.5rem',
           background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)',
           border: '1px solid rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.7)',
@@ -312,7 +312,7 @@ export default function HomePage() {
             <button className="btn-primary" onClick={() => { resetForm(); setView('landing') }}>
               Nueva evaluación
             </button>
-            <button className="btn-secondary" onClick={() => setView('landing')}>
+            <button className="btn-secondary" onClick={() => { setView('landing'); }}>
               Volver al inicio
             </button>
           </div>
@@ -387,7 +387,7 @@ export default function HomePage() {
               </h2>
               {SURVEY_QUESTIONS.genero.options?.map(opt => (
                 <div key={opt.value} className={`option-item ${genero === opt.value ? 'selected' : ''}`}
-                  onClick={() => setGenero(opt.value)}>
+                  onClick={() => { setGenero(opt.value); }}>
                   <span className="option-indicator">{genero === opt.value && <span className="option-dot"/>}</span>
                   {opt.label}
                 </div>
@@ -404,7 +404,7 @@ export default function HomePage() {
               </h2>
               {SURVEY_QUESTIONS.consumiriaNuevamente.options?.map(opt => (
                 <div key={opt.value} className={`option-item ${consumiriaNuevamente === opt.value ? 'selected' : ''}`}
-                  onClick={() => setConsumiriaNuevamente(opt.value)}>
+                  onClick={() => { setConsumiriaNuevamente(opt.value); }}>
                   <span className="option-indicator">{consumiriaNuevamente === opt.value && <span className="option-dot"/>}</span>
                   {opt.label}
                 </div>
@@ -415,7 +415,7 @@ export default function HomePage() {
               </h2>
               {SURVEY_QUESTIONS.compraria.options?.map(opt => (
                 <div key={opt.value} className={`option-item ${compraria === opt.value ? 'selected' : ''}`}
-                  onClick={() => setCompraria(opt.value)}>
+                  onClick={() => { setCompraria(opt.value); }}>
                   <span className="option-indicator">{compraria === opt.value && <span className="option-dot"/>}</span>
                   {opt.label}
                 </div>
@@ -436,7 +436,7 @@ export default function HomePage() {
                   min="0"
                   placeholder="Ej: 500"
                   value={precioPagar}
-                  onChange={e => setPrecioPagar(e.target.value)}
+                  onChange={e => { setPrecioPagar(e.target.value); }}
                   style={{ width: '100%', padding: '14px 16px 14px 32px',
                     border: '1.5px solid #ecdcc4', borderRadius: '14px',
                     fontSize: '1rem', fontFamily: 'Inter, sans-serif',
@@ -462,7 +462,7 @@ export default function HomePage() {
               </h2>
               {MEJORIA_OPTIONS.map(val => (
                 <div key={val} className={`option-item ${mejoraria.includes(val) ? 'selected' : ''}`}
-                  onClick={() => toggleMejoria(val)}>
+                  onClick={() => { toggleMejoria(val); }}>
                   <span className="checkbox-indicator">
                     {mejoraria.includes(val) && (
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -475,7 +475,7 @@ export default function HomePage() {
               ))}
               {mejoraria.includes('otro') && (
                 <input type="text" placeholder="Especificá qué mejorarías..."
-                  value={mejoriaOtro} onChange={e => setMejoriaOtro(e.target.value)}
+                  value={mejoriaOtro} onChange={e => { setMejoriaOtro(e.target.value); }}
                   className="admin-input" style={{ marginTop: '8px' }} />
               )}
               <div style={{ height: '1px', background: '#ecdcc4', margin: '1.5rem 0' }} />
@@ -496,7 +496,7 @@ export default function HomePage() {
                 </h2>
                 {SURVEY_QUESTIONS.saborPredominante.options?.map(opt => (
                   <div key={opt.value} className={`option-item ${saborPredominante === opt.value ? 'selected' : ''}`}
-                    onClick={() => setSaborPredominante(opt.value)}>
+                    onClick={() => { setSaborPredominante(opt.value); }}>
                     <span className="option-indicator">{saborPredominante === opt.value && <span className="option-dot"/>}</span>
                     {opt.label}
                   </div>

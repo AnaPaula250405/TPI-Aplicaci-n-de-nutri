@@ -17,8 +17,8 @@ export default function ResultadosPublicosPage() {
           Los resultados son accesibles únicamente para el equipo de investigación.
         </p>
         <div style={{ display:'flex', gap:'12px', justifyContent:'center', flexWrap:'wrap' }}>
-          <button className="btn-primary" onClick={() => router.push('/admin')}>Ir al panel admin</button>
-          <button className="btn-secondary" onClick={() => router.push('/')}>Volver al formulario</button>
+          <button className="btn-primary" onClick={() => { router.push('/admin'); }}>Ir al panel admin</button>
+          <button className="btn-secondary" onClick={() => { router.push('/'); }}>Volver al formulario</button>
         </div>
       </div>
     </div>

@@ -52,13 +52,13 @@ export default function AdminLoginPage() {
           Solo para el equipo de investigación
         </p>
         <input type="password" className="admin-input" placeholder="Contraseña de acceso"
-          value={password} onChange={e => setPassword(e.target.value)}
+          value={password} onChange={e => { setPassword(e.target.value); }}
           onKeyDown={e => e.key === 'Enter' && handleLogin()} />
         {error && <p style={{ color: '#dc2626', fontSize: '0.85rem', marginBottom: '1rem' }}>{error}</p>}
         <button className="btn-primary" onClick={handleLogin} disabled={loading} style={{ width: '100%' }}>
           {loading ? 'Verificando...' : 'Ingresar al panel'}
         </button>
-        <button onClick={() => router.push('/')}
+        <button onClick={() => { router.push('/'); }}
           style={{ marginTop: '1rem', background: 'none', border: 'none',
             color: 'var(--text-mid)', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
           ← Volver al formulario
