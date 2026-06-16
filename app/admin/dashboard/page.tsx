@@ -259,7 +259,7 @@ export default function DashboardPage() {
             </ResultCard>
 
             <ResultCard title="Nivel de crujiente" badge="Perfil sensorial">
-              <HorizBar data={applyLabels(data!.dulzorChart, 'crujiente')}/>
+              <HorizBar data={applyLabels(data!.crujienteChart, 'crujiente')}/>
             </ResultCard>
 
             <ResultCard title="Apreciación del color" badge="Perfil sensorial">

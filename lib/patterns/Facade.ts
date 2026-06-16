@@ -31,6 +31,7 @@ export interface ResultsSummary {
   dulzorChart: ChartDataPoint[]
   humedadChart: ChartDataPoint[]
   colorChart: ChartDataPoint[]
+  crujienteChart: ChartDataPoint[]
   agradoChart: ChartDataPoint[]
   agradoPromedio: number
   precioPromedio: number
@@ -79,6 +80,7 @@ export class SurveyFacade {
       dulzorChart:     countCtx.execute(responses,  'dulzor'),
       humedadChart:    countCtx.execute(responses,  'humedad'),
       colorChart:      countCtx.execute(responses,  'color'),
+      crujienteChart:  countCtx.execute(responses,  'crujiente'),
       agradoChart:     avgCtx.execute(responses,    'nivelAgrado'),
       agradoPromedio,
       precioPromedio,
