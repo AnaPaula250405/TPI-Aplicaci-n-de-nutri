@@ -165,7 +165,7 @@ export default function DashboardPage() {
                 <div style={{ flex:'0 0 160px' }}>
                   <ResponsiveContainer width={160} height={160}>
                     <PieChart>
-                      <Pie data={applyLabels(data?.generoChart,'genero')}
+                      <Pie data={applyLabels(data?.generoChart ?? [],'genero')}
                         dataKey="value" nameKey="name"
                         cx="50%" cy="50%" outerRadius={70} innerRadius={30}
                         label={false} labelLine={false}>
@@ -179,7 +179,7 @@ export default function DashboardPage() {
                 <div style={{ flex:1, display:'flex', flexDirection:'column', gap:'10px' }}>
                   {(() => {
                     const total = data?.generoChart.reduce((a,x) => a+x.value, 0)
-                    return applyLabels(data?.generoChart,'genero').map((d,i) => (
+                    return applyLabels(data?.generoChart ?? [],'genero').map((d,i) => (
                       <div key={d.name} style={{ display:'flex', alignItems:'center', gap:'10px' }}>
                         <span style={{ width:14, height:14, borderRadius:'3px', flexShrink:0,
                           background:COLORS[i%COLORS.length], display:'inline-block' }}/>
@@ -197,11 +197,11 @@ export default function DashboardPage() {
             </ResultCard>
 
             <ResultCard title="¿Consumiría nuevamente?" badge="Intención de consumo">
-              <HorizBar data={applyLabels(data?.consumiriaChart,'consumiriaNuevamente')}/>
+              <HorizBar data={applyLabels(data?.consumiriaChart ?? [],'consumiriaNuevamente')}/>
             </ResultCard>
 
             <ResultCard title="¿Compraría el producto?" badge="Intención de consumo">
-              <HorizBar data={applyLabels(data?.comprariaChart,'compraria')}/>
+              <HorizBar data={applyLabels(data?.comprariaChart ?? [],'compraria')}/>
             </ResultCard>
 
             {/* Precio promedio */}
@@ -234,12 +234,12 @@ export default function DashboardPage() {
             </ResultCard>
 
             <ResultCard title="¿Qué mejorarían?" badge="Opinión personal">
-              <HorizBar data={applyLabels(data?.mejorariaChart,'mejoraria')}/>
+              <HorizBar data={applyLabels(data?.mejorariaChart ?? [],'mejoraria')}/>
             </ResultCard>
 
             <ResultCard title="Sabor predominante" badge="Perfil sensorial">
               <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={applyLabels(data?.saborChart,'sabor')} margin={{top:5,right:10,left:-20,bottom:5}}>
+                <BarChart data={applyLabels(data?.saborChart ?? [],'sabor')} margin={{top:5,right:10,left:-20,bottom:5}}>
                   <XAxis dataKey="name" tick={{fontSize:11, fill:'#6b3a1a', fontFamily:'Inter,sans-serif'}}/>
                   <YAxis tick={{fontSize:11, fill:'#6b3a1a'}} allowDecimals={false}/>
                   <Tooltip formatter={v=>[`${v} respuestas`]}/>
@@ -251,19 +251,19 @@ export default function DashboardPage() {
             </ResultCard>
 
             <ResultCard title="Nivel de dulzor" badge="Perfil sensorial">
-              <HorizBar data={applyLabels(data?.dulzorChart,'dulzor')}/>
+              <HorizBar data={applyLabels(data?.dulzorChart ?? [],'dulzor')}/>
             </ResultCard>
 
             <ResultCard title="Nivel de humedad" badge="Perfil sensorial">
-              <HorizBar data={applyLabels(data?.humedadChart,'humedad')}/>
+              <HorizBar data={applyLabels(data?.humedadChart ?? [],'humedad')}/>
             </ResultCard>
 
             <ResultCard title="Nivel de crujiente" badge="Perfil sensorial">
-              <HorizBar data={applyLabels(data?.crujienteChart, 'crujiente')}/>
+              <HorizBar data={applyLabels(data?.crujienteChart ?? [], 'crujiente')}/>
             </ResultCard>
 
             <ResultCard title="Apreciación del color" badge="Perfil sensorial">
-              <HorizBar data={applyLabels(data?.colorChart,'color')}/>
+              <HorizBar data={applyLabels(data?.colorChart ?? [],'color')}/>
             </ResultCard>
           </>
         )}
