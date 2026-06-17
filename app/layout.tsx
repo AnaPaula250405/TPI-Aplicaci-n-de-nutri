@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { Analytics } from '@vercel/analytics/react'
 
 export const metadata: Metadata = {
   title: 'Budín Orgánico · Evaluación Sensorial',
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="es">
+      
       <body>
         {/* RNF visual: badge de entorno visible siempre */}
         <div
@@ -29,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {envNames[env] || env.toUpperCase()}
         </div>
         {children}
+        <Analytics />
       </body>
     </html>
   )
