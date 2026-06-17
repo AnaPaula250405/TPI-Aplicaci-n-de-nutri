@@ -1,5 +1,7 @@
 # 🥕 Budín Orgánico — Evaluación Sensorial
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/01ce63b467824d2a9ea78a0bb43fcd0e)](https://app.codacy.com/gh/AnaPaula250405/TPI-Aplicaci-n-de-nutri?utm_source=github.com&utm_medium=referral&utm_content=AnaPaula250405/TPI-Aplicaci-n-de-nutri&utm_campaign=Badge_Grade)
+
 App web desarrollada con **Next.js 14** para evaluar el budín de zanahoria, lenteja turca y banana.
 
 ---
